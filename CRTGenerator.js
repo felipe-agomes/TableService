@@ -95,7 +95,7 @@ insert into table ${tablename}
 fields terminated by '${delimiter}' OPTIONALLY ENCLOSED BY "'"
 TRAILING NULLCOLS
 (
-	${columns.join(',\r\n   ')}
+	${columns.join(',\r\n	')}
 )`;
 			const CTRFullPath = path.join(this.CTRPath, tablename + '.ctr');
 

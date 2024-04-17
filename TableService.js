@@ -1,43 +1,44 @@
-const fs = require('fs');
-const path = require('path');
 const { isRegExp } = require('util/types');
-const CTRGenerator = require('./CRTGenerator');
-const BATGenerator = require('./BATGenerator');
 
 class TableService {
 	CSVPath;
 	CTRPath;
 
-	constructor(DBuser, DBPassword, DBTns) {
-		if (!DBuser || !DBPassword || !DBTns) {
-			throw new Error('Devem ser definidas as credenciais para acesso ao banco');
-		}
-
-		this.CTRGenerator = new CTRGenerator();
-		this.BATGenerator = new BATGenerator(DBuser, DBPassword, DBTns);
-
-		this.DBTns = DBTns;
-		this.DBPassword = DBPassword;
-		this.DBuser = DBuser;
+	constructor(CTRGenerator, BATGenerator) {
+		this.CTRGenerator = CTRGenerator;
+		this.BATGenerator = BATGenerator;
 	}
 
 	createBATInto(fullPath) {
+		if (!fullPath) {
+			throw new Error(
+				'Deve ser informado o caminho de onde vai ficar salvo os arquivos .bat',
+			);
+		}
+
 		this.BATPath = fullPath;
-		this.BATGenerator.setBATPath(fullPath);
+		this.BATGenerator.setBATFolder(fullPath);
 		this.BATGenerator.setCTRFolder(this.CTRPath);
 
 		this.BATGenerator.createBATInto(fullPath);
 	}
 
 	createCTRInto(fullPath) {
+		if (!fullPath) {
+			throw new Error(
+				'Deve ser informado o caminho de onde vai ficar salvo os arquivos .ctr',
+			);
+		}
+
 		this.CTRPath = fullPath;
+
+		this.CTRGenerator.setCSVFolder(this.CSVPath);
 
 		this.CTRGenerator.createCTRInto(fullPath);
 	}
 
 	setCSVFolder(CSVPath) {
 		this.CSVPath = CSVPath;
-		this.CTRGenerator.setCSVFolder(CSVPath);
 	}
 
 	setCTRFolder(CTRPath) {

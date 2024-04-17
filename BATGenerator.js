@@ -5,6 +5,10 @@ class BATGenerator {
 	BATPath;
 
 	constructor(DBuser, DBPassword, DBTns) {
+		if (!DBuser || !DBPassword || !DBTns) {
+			throw new Error('Devem ser definidas as credenciais para acesso ao banco');
+		}
+
 		this.DBTns = DBTns;
 		this.DBPassword = DBPassword;
 		this.DBuser = DBuser;
@@ -60,7 +64,7 @@ PAUSE`;
 		this.#writeBAT(allCTRPath);
 	}
 
-	setBATPath(fullPath) {
+	setBATFolder(fullPath) {
 		this.BATPath = fullPath;
 	}
 
