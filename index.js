@@ -1,6 +1,7 @@
 const CTRGenerator = require('./CRTGenerator');
 const BATGenerator = require('./BATGenerator');
 const TableService = require('./TableService');
+const SQLGenerator = require('./SQLGenerator');
 
 class TableServiceCli {
 	#TableService;
@@ -8,6 +9,7 @@ class TableServiceCli {
 		this.#TableService = new TableService(
 			new CTRGenerator(),
 			new BATGenerator(DBuser, DBPassword, DBTns),
+			new SQLGenerator(),
 		);
 	}
 
