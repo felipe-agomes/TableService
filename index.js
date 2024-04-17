@@ -13,6 +13,4 @@ tableService.setCSVFolder('C:\\Users\\Felipe.admrh01\\Importacao\\Exportação')
 
 tableService.createCTRInto('C:\\Users\\Felipe.admrh01\\Importacao\\CONTROLLER');
 
-// tableService.setCTRFolder('C:\\Users\\Felipe.admrh01\\Importacao\\CONTROLLER');
-
 tableService.createBATInto('C:\\Users\\Felipe.admrh01\\Importacao\\BAT');
