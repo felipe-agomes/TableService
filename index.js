@@ -1,10 +1,16 @@
 const TableService = require('./TableService');
 
-const tableService = new TableService(false);
+const tableService = new TableService(
+	'RH_DADOS',
+	't$rhd4d0s#2023',
+	'PMSFP_HML',
+	true,
+);
 
-// tableService.setCSVFolder('C:\\Users\\Felipe.admrh01\\Importacao\\Exportação');
+tableService.setRegexToTablename(/^(.*)\..*/);
 
-// tableService.createCTRInto('C:\\Users\\Felipe.admrh01\\Importacao\\CONTROLLER');
-tableService.setCTRFolder('C:\\Users\\Felipe.admrh01\\Importacao\\CONTROLLER');
+tableService.setCSVFolder('C:\\Users\\Felipe.admrh01\\Importacao\\Exportação');
 
-tableService.createBatInto('C:\\Users\\Felipe.admrh01\\Importacao\\BAT');
+tableService.createCTRInto('C:\\Users\\Felipe.admrh01\\Importacao\\CONTROLLER');
+
+tableService.createBATInto('C:\\Users\\Felipe.admrh01\\Importacao\\BAT');

@@ -1,12 +1,21 @@
 const fs = require('fs');
 const path = require('path');
+const { isRegExp } = require('util/types');
 
 class TableService {
 	CSVPath;
 	CTRPath;
+	regexToTablename;
 
-	constructor(serverOutput) {
+	constructor(DBuser, DBPassword, DBTns, serverOutput) {
+		if (!DBuser || !DBPassword || !DBTns) {
+			throw new Error('Devem ser definidas as credenciais para acesso ao banco');
+		}
+
 		this.serverOutput = serverOutput;
+		this.DBTns = DBTns;
+		this.DBPassword = DBPassword;
+		this.DBuser = DBuser;
 	}
 
 	#findDelimiter(header) {
@@ -40,15 +49,16 @@ class TableService {
 	#findAllCSVHeader() {
 		const CSVHeaderInfo = [];
 		const allCSVFilename = fs.readdirSync(this.CSVPath);
-		const allCSVFullPath = allCSVFilename.map((CSVFilename) =>
-			path.join(this.CSVPath, CSVFilename),
-		);
+		const allCSVInfo = allCSVFilename.map((CSVFilename) => ({
+			fullPath: path.join(this.CSVPath, CSVFilename),
+			CSVFilename,
+		}));
 
-		for (const CSVFullPath of allCSVFullPath) {
-			const tableName = CSVFullPath.match(/.*\.(.*)\..*/)[1];
+		for (const { fullPath, CSVFilename } of allCSVInfo) {
+			const tablename = CSVFilename.match(this.regexToTablename)[1];
 
 			const CSVFile = fs
-				.readFileSync(CSVFullPath, {
+				.readFileSync(fullPath, {
 					encoding: 'utf-8',
 				})
 				.split('\r\n');
@@ -59,8 +69,8 @@ class TableService {
 				const columns = header.split(delimiter).map((col) => col.trim());
 
 				CSVHeaderInfo.push({
-					CSVFullPath,
-					tableName,
+					fullPath,
+					tablename,
 					delimiter,
 					columns,
 				});
@@ -70,36 +80,52 @@ class TableService {
 		return CSVHeaderInfo;
 	}
 
-	#writeCTR({ CSVHeaderInfo, resultPath }) {
-		for (const CSVHeader of CSVHeaderInfo) {
-			const { originPath, tableName, delimiter, columns } = CSVHeader;
+	#serverOutput(text) {
+		if (this.serverOutput) {
+			console.log(text);
+		}
+	}
 
-			const restult = `OPTIONS (SKIP=1)
+	#writeCTR(allCSVHeaderInfo) {
+		for (const CSVHeader of allCSVHeaderInfo) {
+			const { originPath, tablename, delimiter, columns } = CSVHeader;
+
+			const ctr = `OPTIONS (SKIP=1)
 load data
 infile '${originPath}'
-insert into table ${tableName}
+insert into table ${tablename}
 fields terminated by '${delimiter}' OPTIONALLY ENCLOSED BY "'"
 TRAILING NULLCOLS
 (
 	${columns.join(',\r\n   ')}
 )`;
-			const resultFullPath = path.join(resultPath, tableName + '.ctr');
+			const CTRFullPath = path.join(this.CSVPath, tablename + '.ctr');
 
-			if (this.serverOutput) {
-				console.log(restult);
-			}
+			this.#serverOutput(ctr);
 
-			fs.writeFileSync(resultFullPath, restult);
+			fs.writeFileSync(CTRFullPath, ctr);
+		}
+	}
+
+	#validateRegex() {
+		if (!this.regexToTablename) {
+			throw new Error(
+				'Primeiro deve ser definido um regex para resolver o nome das tabelas',
+			);
 		}
 	}
 
 	#validateCSV() {
+		this.#validateRegex();
+
 		if (!this.CSVPath) {
 			throw new Error('Primeiro deve ser definido o caminho do CSV');
 		}
 	}
 
 	#validateCTR() {
+		this.#validateRegex();
+
 		if (!this.CTRPath) {
 			throw new Error('Primeiro deve ser definido o caminho do CTR');
 		}
@@ -110,26 +136,51 @@ TRAILING NULLCOLS
 		const allCTRFullPath = allCTRFilename.map((CTRFilename) =>
 			path.join(this.CTRPath, CTRFilename),
 		);
+
+		return allCTRFullPath;
 	}
 
 	createCTRInto(fullPath) {
 		this.#validateCSV();
 
+		this.CTRPath = fullPath;
+
 		const CSVHeaderInfo = this.#findAllCSVHeader();
 
-		this.#writeCTR({ CSVHeaderInfo, resultPath: fullPath });
+		this.#writeCTR(CSVHeaderInfo);
 	}
 
-	#writeBAT(bat) {
-		
+	#writeBAT() {
+		const allCTRFilename = fs
+			.readdirSync(this.CTRPath)
+			.map((ctr) => ctr.match(/^(.*)\..*/)[1]);
+
+		const allBATInfo = allCTRFilename.map((CTRFilename) => {
+			const BATFilename = CTRFilename + '.bat';
+			return {
+				fullPath: path.join(this.BATPath, BATFilename),
+				BATFilename,
+			};
+		});
+
+		for (const { fullPath } of allBATInfo) {
+			const loader = `sqlldr ${this.DBuser}/${this.DBPassword}@${this.DBTns} CONTROL='${fullPath}'
+PAUSE`;
+
+			this.#serverOutput(loader);
+
+			fs.writeFileSync(fullPath, loader);
+		}
 	}
 
-	createBatInto(fullPath) {
+	createBATInto(fullPath) {
 		this.#validateCTR();
 
-		const bat = this.#findAllCTRPath();
+		this.BATPath = fullPath;
 
-		this.#writeBAT(bat);
+		const allCTRPath = this.#findAllCTRPath();
+
+		this.#writeBAT(allCTRPath);
 	}
 
 	setCSVFolder(CSVPath) {
@@ -138,6 +189,12 @@ TRAILING NULLCOLS
 
 	setCTRFolder(CTRPath) {
 		this.CTRPath = CTRPath;
+	}
+
+	setRegexToTablename(regex) {
+		if (isRegExp(regex)) {
+			this.regexToTablename = regex;
+		}
 	}
 }
 
