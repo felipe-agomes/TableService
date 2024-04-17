@@ -7,7 +7,7 @@ const tableService = new TableService(
 	true,
 );
 
-tableService.setRegexToTablename(/^(.*)\..*/);
+tableService.setRegexForTablename(/.*\.(.*)\..*/);
 
 tableService.setCSVFolder('C:\\Users\\Felipe.admrh01\\Importacao\\Exportação');
 
