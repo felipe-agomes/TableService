@@ -4,7 +4,6 @@ const tableService = new TableService(
 	'RH_DADOS',
 	't$rhd4d0s#2023',
 	'PMSFP_HML',
-	true,
 );
 
 tableService.setRegexForTablename(/.*\.(.*)\..*/);

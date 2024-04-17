@@ -8,7 +8,7 @@ class TableService {
 	CSVPath;
 	CTRPath;
 
-	constructor(DBuser, DBPassword, DBTns, serverOutput) {
+	constructor(DBuser, DBPassword, DBTns) {
 		if (!DBuser || !DBPassword || !DBTns) {
 			throw new Error('Devem ser definidas as credenciais para acesso ao banco');
 		}
@@ -16,7 +16,6 @@ class TableService {
 		this.CTRGenerator = new CTRGenerator();
 		this.BATGenerator = new BATGenerator(DBuser, DBPassword, DBTns);
 
-		this.serverOutput = serverOutput;
 		this.DBTns = DBTns;
 		this.DBPassword = DBPassword;
 		this.DBuser = DBuser;
